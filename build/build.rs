@@ -36,10 +36,8 @@ struct CfgLine {
 
 fn get_cfg_lines(triple_name: &'static str) -> Result<Vec<CfgLine>> {
     let rustc = env::var_os("RUSTC").unwrap();
-    let output = Command::new(&rustc)
-        .arg("--print=cfg")
-        .arg(format!("--target={triple_name}"))
-        .output()?;
+    let output =
+        Command::new(&rustc).arg("--print=cfg").arg(format!("--target={triple_name}")).output()?;
     ensure!(
         output.status.success(),
         "`rustc` returned a non-zero exit status: {}",
@@ -53,11 +51,7 @@ fn get_cfg_lines(triple_name: &'static str) -> Result<Vec<CfgLine>> {
                 .map(|(property_name, property_value)| {
                     let property_name = property_name.to_string();
                     let property_value = property_value.trim_matches('"').to_string();
-                    CfgLine {
-                        triple_name,
-                        property_name,
-                        property_value,
-                    }
+                    CfgLine { triple_name, property_name, property_value }
                 })
         })
         .collect_vec())
@@ -73,10 +67,7 @@ fn generate_enum_for_named_property(
         .iter()
         .filter_map(|cfg| {
             if cfg.property_name == property_name {
-                Some((
-                    format_ident(cfg.triple_name),
-                    format_ident(&cfg.property_value),
-                ))
+                Some((format_ident(cfg.triple_name), format_ident(&cfg.property_value)))
             } else {
                 None
             }
@@ -90,9 +81,8 @@ fn generate_enum_for_named_property(
         .sorted()
         .unique()
         .collect_vec();
-    let (triple_idents, property_value_idents) = triple_and_property_value_idents
-        .into_iter()
-        .unzip::<_, _, Vec<_>, Vec<_>>();
+    let (triple_idents, property_value_idents) =
+        triple_and_property_value_idents.into_iter().unzip::<_, _, Vec<_>, Vec<_>>();
     quote! {
         #doc_string
         #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -121,10 +111,7 @@ fn write_target_triples_rs(path: &Path) -> Result<()> {
         .filter(|line| !line.trim().is_empty())
         .sorted()
         .collect_vec();
-    let triple_idents = triple_names
-        .iter()
-        .map(|triple| format_ident(triple))
-        .collect_vec();
+    let triple_idents = triple_names.iter().map(|triple| format_ident(triple)).collect_vec();
     let cfg_lines = triple_names
         .iter()
         .map(|&triple| get_cfg_lines(triple))
