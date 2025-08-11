@@ -2,7 +2,8 @@ name: Build and test gnrt
 
 on:
   pushes:
-    branches: *
+    branches:
+      - '**'
 
 jobs:
   build_and_test:
